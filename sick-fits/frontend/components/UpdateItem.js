@@ -13,6 +13,8 @@ export const SINGLE_ITEM_QUERY = gql`
       title
       description
       price
+      image
+      largeImage
     }
   }
 `;
@@ -58,8 +60,6 @@ export default class CreateItem extends Component {
         ...this.state,
       },
     });
-
-    console.log(response);
   };
 
   render() {
