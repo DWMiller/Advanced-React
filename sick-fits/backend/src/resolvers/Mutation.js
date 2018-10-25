@@ -67,10 +67,45 @@ async function signup(parent, args, ctx, info) {
 
   ctx.response.cookie('token', token, {
     httpOnly: true,
-    maxAge: 1000 * 60 * 24 * 365, // 1 year
+    maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
   });
 
   return user;
+}
+
+async function signin(parent, args, ctx, info) {
+  args.email = args.email.toLowerCase();
+
+  const user = await ctx.db.query.user({ where: { email: args.email } });
+
+  if (!user) {
+    throw new Error(`No such user found for email ${email}`);
+  }
+
+  const valid = await bcrypt.compare(args.password, user.password);
+
+  if (!valid) {
+    throw new Error('Invalid password');
+  }
+
+  const token = jwt.sign(
+    {
+      userId: user.id,
+    },
+    process.env.APP_SECRET
+  );
+
+  ctx.response.cookie('token', token, {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+  });
+
+  return user;
+}
+
+function signout(parent, args, ctx, info) {
+  ctx.response.clearCookie('token');
+  return { message: 'Goodbye!' };
 }
 
 const Mutations = {
@@ -78,6 +113,8 @@ const Mutations = {
   updateItem,
   deleteItem,
   signup,
+  signin,
+  signout,
 };
 
 module.exports = Mutations;
